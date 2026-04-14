@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard WhatsApp Oficial — iVoei</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273449;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --green: #4ade80;
+      --red: #ef4444;
+      --yellow: #fbbf24;
+      --blue: #38bdf8;
+      --teal: #2dd4bf;
+      --purple: #a78bfa;
+      --orange: #fb923c;
+      --pink: #f472b6;
+      --whatsapp: #25D366;
+      --whatsapp-dark: #128C7E;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--whatsapp-dark), var(--whatsapp));
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-logo {
+      width: 44px;
+      height: 44px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .header h1 span {
+      font-weight: 400;
+      opacity: 0.85;
+      font-size: 15px;
+      display: block;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .last-update {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .btn-refresh {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background: rgba(255,255,255,0.35);
+    }
+
+    /* Funnel selector */
+    .funnel-selector {
+      background: var(--surface);
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .funnel-selector label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .funnel-selector select {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      min-width: 240px;
+    }
+
+    .funnel-selector select:focus {
+      outline: none;
+      border-color: var(--whatsapp);
+    }
+
+    /* Main content */
+    .main {
+      padding: 24px 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .kpi-card.green::before { background: var(--green); }
+    .kpi-card.red::before { background: var(--red); }
+    .kpi-card.yellow::before { background: var(--yellow); }
+    .kpi-card.blue::before { background: var(--blue); }
+    .kpi-card.teal::before { background: var(--teal); }
+    .kpi-card.purple::before { background: var(--purple); }
+    .kpi-card.whatsapp::before { background: var(--whatsapp); }
+
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .kpi-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* Charts section */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .chart-card.full {
+      grid-column: 1 / -1;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* Funnel visual */
+    .funnel-visual {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    .funnel-stages {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .funnel-stage {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: var(--surface2);
+      transition: transform 0.2s;
+    }
+
+    .funnel-stage:hover {
+      transform: translateX(4px);
+    }
+
+    .stage-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .stage-name {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .stage-count {
+      font-size: 20px;
+      font-weight: 700;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .stage-bar-wrapper {
+      flex: 1;
+      max-width: 200px;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .stage-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .stage-pct {
+      font-size: 13px;
+      color: var(--muted);
+      min-width: 44px;
+      text-align: right;
+    }
+
+    /* Insights */
+    .insights-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    .insight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .insight-item:last-child {
+      border-bottom: none;
+    }
+
+    .insight-icon {
+      font-size: 18px;
+      min-width: 28px;
+      text-align: center;
+      padding-top: 2px;
+    }
+
+    .insight-text {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .insight-text strong {
+      color: var(--text);
+    }
+
+    /* Deal table */
+    .deals-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: var(--whatsapp);
+    }
+
+    .search-bar select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .deals-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .deals-table th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .deals-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .deals-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .stage-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .days-badge {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .days-badge.ok { background: rgba(74,222,128,0.15); color: var(--green); }
+    .days-badge.warn { background: rgba(251,191,36,0.15); color: var(--yellow); }
+    .days-badge.danger { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--whatsapp);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    /* Error */
+    .error-box {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: var(--red);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .header { padding: 16px 20px; }
+      .main { padding: 16px 20px; }
+      .funnel-selector { padding: 12px 20px; }
+      .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
+
+    /* Scrollable table wrapper */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo">💬</div>
+      <h1>
+        Funil WhatsApp Oficial
+        <span>iVoei — Painel de Controle CRM</span>
+      </h1>
+    </div>
+    <div class="header-right">
+      <span class="last-update" id="lastUpdate"></span>
+      <button class="btn-refresh" onclick="loadDashboard()">↻ Atualizar</button>
+    </div>
+  </div>
+
+  <!-- Funnel selector -->
+  <div class="funnel-selector">
+    <label>Funil:</label>
+    <select id="funnelSelect" onchange="onFunnelChange()">
+      <option value="">Carregando funis...</option>
+    </select>
+  </div>
+
+  <!-- Content -->
+  <div class="main" id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Conectando ao Bitrix24...</div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // CONFIG
+    // ============================================================
+    const API_BASE = '/api/bitrix';
+    let allCategories = [];
+    let currentCategoryId = null;
+    let currentStages = [];
+    let currentDeals = [];
+    let chartInstances = {};
+
+    // Default color palette for stages without predefined colors
+    const PALETTE = [
+      '#4ade80','#38bdf8','#fbbf24','#fb923c','#a78bfa',
+      '#f472b6','#2dd4bf','#ef4444','#818cf8','#e879f9',
+      '#22d3ee','#84cc16','#f97316','#06b6d4','#8b5cf6'
+    ];
+
+    // ============================================================
+    // API HELPERS
+    // ============================================================
+    async function apiCall(params) {
+      const url = `${API_BASE}?${new URLSearchParams(params)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      return res.json();
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    async function init() {
+      try {
+        // Load categories
+        const catData = await apiCall({ action: 'categories' });
+        allCategories = catData.result || [];
+
+        // Add default category (ID 0)
+        const defaultCat = { ID: '0', NAME: 'Negócios (Padrão)' };
+        const hasCatZero = allCategories.some(c => c.ID === '0');
+        if (!hasCatZero) allCategories.unshift(defaultCat);
+
+        // Populate select
+        const select = document.getElementById('funnelSelect');
+        select.innerHTML = '';
+        allCategories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat.ID;
+          opt.textContent = `${cat.NAME} (ID: ${cat.ID})`;
+          select.appendChild(opt);
+        });
+
+        // Try to auto-select WhatsApp funnel
+        const whatsIdx = allCategories.findIndex(c =>
+          c.NAME.toLowerCase().includes('whatsapp') ||
+          c.NAME.toLowerCase().includes('wpp') ||
+          c.NAME.toLowerCase().includes('whats')
+        );
+
+        if (whatsIdx >= 0) {
+          select.selectedIndex = whatsIdx;
+          currentCategoryId = allCategories[whatsIdx].ID;
+        } else {
+          // Fallback to first category
+          currentCategoryId = allCategories[0]?.ID || '0';
+        }
+
+        await loadDashboard();
+      } catch (err) {
+        document.getElementById('content').innerHTML = `
+          <div class="error-box">
+            <h3>Erro ao conectar</h3>
+            <p>${err.message}</p>
+            <p style="margin-top:12px;color:var(--muted);font-size:13px;">
+              Verifique se a variável BITRIX_WEBHOOK está configurada no Vercel.
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    function onFunnelChange() {
+      const select = document.getElementById('funnelSelect');
+      currentCategoryId = select.value;
+      loadDashboard();
+    }
+
+    // ============================================================
+    // LOAD DASHBOARD
+    // ============================================================
+    async function loadDashboard() {
+      const content = document.getElementById('content');
+      content.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <div class="loading-text">Carregando dados do funil...</div>
+        </div>
+      `;
+
+      try {
+        // Load stages and deals in parallel
+        const [stagesData, dealsData] = await Promise.all([
+          apiCall({ action: 'stages', category: currentCategoryId }),
+          apiCall({ action: 'deals', category: currentCategoryId }),
+        ]);
+
+        currentStages = stagesData.result || [];
+        currentDeals = dealsData.result || [];
+
+        // Update last update time
+        document.getElementById('lastUpdate').textContent =
+          `Atualizado: ${new Date().toLocaleString('pt-BR')}`;
+
+        renderDashboard();
+      } catch (err) {
+        content.innerHTML = `
+          <div class="error-box">
+            <h3>Erro ao carregar dados</h3>
+            <p>${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // ============================================================
+    // RENDER DASHBOARD
+    // ============================================================
+    function renderDashboard() {
+      const content = document.getElementById('content');
+
+      // Build stage map
+      const stageMap = {};
+      currentStages.forEach((s, i) => {
+        stageMap[s.STATUS_ID] = {
+          name: s.NAME,
+          sort: s.SORT || i * 10,
+          color: PALETTE[i % PALETTE.length]
+        };
+      });
+
+      // Count deals per stage
+      const stageCounts = {};
+      currentStages.forEach(s => { stageCounts[s.STATUS_ID] = 0; });
+      currentDeals.forEach(d => {
+        if (stageCounts[d.STAGE_ID] !== undefined) {
+          stageCounts[d.STAGE_ID]++;
+        } else {
+          stageCounts[d.STAGE_ID] = 1;
+        }
+      });
+
+      // KPIs
+      const total = currentDeals.length;
+      const closed = currentDeals.filter(d => d.CLOSED === 'Y').length;
+      const active = total - closed;
+      const won = currentDeals.filter(d => d.STAGE_ID && d.STAGE_ID.endsWith(':WON')).length;
+      const lost = currentDeals.filter(d => d.STAGE_ID && d.STAGE_ID.endsWith(':LOSE')).length;
+
+      const now = Date.now();
+      const staleDeals = currentDeals.filter(d => {
+        if (d.CLOSED === 'Y') return false;
+        if (!d.DATE_MODIFY) return false;
+        const days = Math.floor((now - new Date(d.DATE_MODIFY).getTime()) / 86400000);
+        return days > 30;
+      });
+
+      const totalOpportunity = currentDeals.reduce((sum, d) => {
+        return sum + (parseFloat(d.OPPORTUNITY) || 0);
+      }, 0);
+
+      const conversionRate = total > 0 ? ((won / total) * 100).toFixed(1) : '0.0';
+      const lossRate = total > 0 ? ((lost / total) * 100).toFixed(1) : '0.0';
+
+      // Insights
+      const insights = buildInsights({ total, active, won, lost, staleDeals, lossRate, conversionRate });
+
+      content.innerHTML = `
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card whatsapp">
+            <div class="kpi-label">Total no Funil</div>
+            <div class="kpi-value">${total}</div>
+            <div class="kpi-sub">${currentStages.length} estágios</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-label">Ativos</div>
+            <div class="kpi-value">${active}</div>
+            <div class="kpi-sub">${total > 0 ? ((active / total) * 100).toFixed(0) : 0}% do total</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-label">Ganhos</div>
+            <div class="kpi-value">${won}</div>
+            <div class="kpi-sub">Taxa: ${conversionRate}%</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-label">Perdidos</div>
+            <div class="kpi-value">${lost}</div>
+            <div class="kpi-sub">Taxa: ${lossRate}%</div>
+          </div>
+          <div class="kpi-card yellow">
+            <div class="kpi-label">Sem Atividade +30d</div>
+            <div class="kpi-value">${staleDeals.length}</div>
+            <div class="kpi-sub">${active > 0 ? ((staleDeals.length / active) * 100).toFixed(0) : 0}% dos ativos</div>
+          </div>
+          <div class="kpi-card teal">
+            <div class="kpi-label">Valor Total</div>
+            <div class="kpi-value" style="font-size:24px">R$ ${formatCurrency(totalOpportunity)}</div>
+            <div class="kpi-sub">Oportunidades</div>
+          </div>
+        </div>
+
+        <!-- Funnel visual -->
+        <div class="funnel-visual">
+          <div class="chart-title">📊 Distribuição por Estágio</div>
+          <div class="funnel-stages" id="funnelStages"></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">🍩 Proporção por Estágio</div>
+            <div class="chart-container"><canvas id="chartDoughnut"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">📈 Criação ao Longo do Tempo</div>
+            <div class="chart-container"><canvas id="chartTimeline"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="insights-section">
+          <div class="chart-title">💡 Insights Automáticos</div>
+          <div id="insightsList">${insights}</div>
+        </div>
+
+        <!-- Deals table -->
+        <div class="deals-section">
+          <div class="chart-title">📋 Lista de Negócios</div>
+          <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Buscar por nome..." oninput="filterTable()">
+            <select id="stageFilter" onchange="filterTable()">
+              <option value="">Todos os estágios</option>
+            </select>
+          </div>
+          <div class="table-wrapper">
+            <table class="deals-table" id="dealsTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Estágio</th>
+                  <th>Valor</th>
+                  <th>Criado</th>
+                  <th>Última Atividade</th>
+                  <th>Dias Parado</th>
+                </tr>
+              </thead>
+              <tbody id="dealsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      // Render funnel stages
+      renderFunnelStages(stageMap, stageCounts, total);
+
+      // Render charts
+      renderDoughnutChart(stageMap, stageCounts);
+      renderTimelineChart();
+
+      // Populate stage filter and deals table
+      populateStageFilter(stageMap);
+      renderDealsTable(stageMap);
+    }
+
+    // ============================================================
+    // FUNNEL STAGES
+    // ============================================================
+    function renderFunnelStages(stageMap, stageCounts, total) {
+      const container = document.getElementById('funnelStages');
+      if (!container) return;
+
+      const maxCount = Math.max(...Object.values(stageCounts), 1);
+
+      const sorted = currentStages.slice().sort((a, b) => (a.SORT || 0) - (b.SORT || 0));
+
+      container.innerHTML = sorted.map(stage => {
+        const count = stageCounts[stage.STATUS_ID] || 0;
+        const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+        const barPct = maxCount > 0 ? ((count / maxCount) * 100) : 0;
+        const color = stageMap[stage.STATUS_ID]?.color || '#64748b';
+        return `
+          <div class="funnel-stage">
+            <div class="stage-color" style="background:${color}"></div>
+            <div class="stage-name">${stage.NAME}</div>
+            <div class="stage-count">${count}</div>
+            <div class="stage-bar-wrapper">
+              <div class="stage-bar" style="width:${barPct}%;background:${color}"></div>
+            </div>
+            <div class="stage-pct">${pct}%</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ============================================================
+    // CHARTS
+    // ============================================================
+    function renderDoughnutChart(stageMap, stageCounts) {
+      const ctx = document.getElementById('chartDoughnut');
+      if (!ctx) return;
+
+      // Destroy existing
+      if (chartInstances.doughnut) chartInstances.doughnut.destroy();
+
+      const sorted = currentStages.slice().sort((a, b) => (a.SORT || 0) - (b.SORT || 0));
+      const labels = sorted.map(s => s.NAME);
+      const data = sorted.map(s => stageCounts[s.STATUS_ID] || 0);
+      const colors = sorted.map(s => stageMap[s.STATUS_ID]?.color || '#64748b');
+
+      chartInstances.doughnut = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: colors,
+            borderColor: '#1e293b',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#94a3b8',
+                font: { size: 11 },
+                padding: 8,
+                usePointStyle: true,
+                pointStyleWidth: 10
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTimelineChart() {
+      const ctx = document.getElementById('chartTimeline');
+      if (!ctx) return;
+
+      if (chartInstances.timeline) chartInstances.timeline.destroy();
+
+      // Group deals by month of creation
+      const monthMap = {};
+      currentDeals.forEach(d => {
+        if (!d.DATE_CREATE) return;
+        const date = new Date(d.DATE_CREATE);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthMap[key] = (monthMap[key] || 0) + 1;
+      });
+
+      const sortedKeys = Object.keys(monthMap).sort();
+      const labels = sortedKeys.map(k => {
+        const [y, m] = k.split('-');
+        const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        return `${months[parseInt(m) - 1]}/${y.slice(2)}`;
+      });
+      const data = sortedKeys.map(k => monthMap[k]);
+
+      chartInstances.timeline = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Negócios Criados',
+            data,
+            backgroundColor: 'rgba(37, 211, 102, 0.6)',
+            borderColor: '#25D366',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { color: 'rgba(51,65,85,0.3)' },
+              ticks: { color: '#94a3b8', font: { size: 11 } }
+            },
+            y: {
+              grid: { color: 'rgba(51,65,85,0.3)' },
+              ticks: { color: '#94a3b8', font: { size: 11 } },
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // ============================================================
+    // INSIGHTS
+    // ============================================================
+    function buildInsights({ total, active, won, lost, staleDeals, lossRate, conversionRate }) {
+      const items = [];
+
+      if (total === 0) {
+        items.push({ icon: 'ℹ️', text: 'Nenhum negócio encontrado neste funil.' });
+        return items.map(i => `
+          <div class="insight-item">
+            <div class="insight-icon">${i.icon}</div>
+            <div class="insight-text">${i.text}</div>
+          </div>
+        `).join('');
+      }
+
+      if (parseFloat(lossRate) > 50) {
+        items.push({
+          icon: '🔴',
+          text: `<strong>Taxa de perda crítica (${lossRate}%)</strong> — Mais da metade dos negócios foram perdidos. Recomenda-se revisar a qualificação dos leads no WhatsApp e o processo de follow-up.`
+        });
+      } else if (parseFloat(lossRate) > 30) {
+        items.push({
+          icon: '🟡',
+          text: `<strong>Taxa de perda elevada (${lossRate}%)</strong> — Atenção especial aos primeiros contatos e tempo de resposta no WhatsApp.`
+        });
+      }
+
+      if (staleDeals.length > 0) {
+        items.push({
+          icon: '🟡',
+          text: `<strong>${staleDeals.length} negócio(s) sem atividade há mais de 30 dias</strong> — Esses leads podem estar esfriando. Considere uma ação de reengajamento via WhatsApp.`
+        });
+      }
+
+      if (parseFloat(conversionRate) > 0) {
+        items.push({
+          icon: '🟢',
+          text: `<strong>Taxa de conversão: ${conversionRate}%</strong> — ${won} negócio(s) fechado(s) com sucesso no funil.`
+        });
+      }
+
+      if (active > 0) {
+        items.push({
+          icon: '🟢',
+          text: `<strong>${active} negócio(s) ativo(s)</strong> em andamento no funil — potencial de receita em acompanhamento.`
+        });
+      }
+
+      if (items.length === 0) {
+        items.push({ icon: '✅', text: 'Funil em bom estado! Continue acompanhando a evolução dos leads.' });
+      }
+
+      return items.map(i => `
+        <div class="insight-item">
+          <div class="insight-icon">${i.icon}</div>
+          <div class="insight-text">${i.text}</div>
+        </div>
+      `).join('');
+    }
+
+    // ============================================================
+    // DEALS TABLE
+    // ============================================================
+    function populateStageFilter(stageMap) {
+      const select = document.getElementById('stageFilter');
+      if (!select) return;
+      currentStages.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.STATUS_ID;
+        opt.textContent = s.NAME;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderDealsTable(stageMap) {
+      const tbody = document.getElementById('dealsBody');
+      if (!tbody) return;
+
+      const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+      const stageFilter = document.getElementById('stageFilter')?.value || '';
+
+      let filtered = currentDeals.filter(d => {
+        if (search && !(d.TITLE || '').toLowerCase().includes(search)) return false;
+        if (stageFilter && d.STAGE_ID !== stageFilter) return false;
+        return true;
+      });
+
+      // Sort by most recent modification
+      filtered.sort((a, b) => new Date(b.DATE_MODIFY || 0) - new Date(a.DATE_MODIFY || 0));
+
+      // Limit to 100 for performance
+      const limited = filtered.slice(0, 100);
+
+      tbody.innerHTML = limited.map(d => {
+        const stage = stageMap[d.STAGE_ID] || { name: d.STAGE_ID, color: '#64748b' };
+        const daysSinceModify = d.DATE_MODIFY
+          ? Math.floor((Date.now() - new Date(d.DATE_MODIFY).getTime()) / 86400000)
+          : null;
+
+        let daysBadgeClass = 'ok';
+        if (daysSinceModify > 30) daysBadgeClass = 'danger';
+        else if (daysSinceModify > 14) daysBadgeClass = 'warn';
+
+        return `
+          <tr>
+            <td style="color:var(--muted)">${d.ID}</td>
+            <td><strong>${d.TITLE || '—'}</strong></td>
+            <td>
+              <span class="stage-badge" style="background:${stage.color}22;color:${stage.color};border:1px solid ${stage.color}44">
+                ${stage.name}
+              </span>
+            </td>
+            <td>R$ ${formatCurrency(parseFloat(d.OPPORTUNITY) || 0)}</td>
+            <td style="color:var(--muted)">${formatDate(d.DATE_CREATE)}</td>
+            <td style="color:var(--muted)">${formatDate(d.DATE_MODIFY)}</td>
+            <td>
+              ${daysSinceModify !== null
+                ? `<span class="days-badge ${daysBadgeClass}">${daysSinceModify}d</span>`
+                : '—'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      if (limited.length < filtered.length) {
+        tbody.innerHTML += `
+          <tr>
+            <td colspan="7" style="text-align:center;color:var(--muted);padding:16px">
+              Exibindo ${limited.length} de ${filtered.length} negócios
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function filterTable() {
+      const stageMap = {};
+      currentStages.forEach((s, i) => {
+        stageMap[s.STATUS_ID] = {
+          name: s.NAME,
+          sort: s.SORT || i * 10,
+          color: PALETTE[i % PALETTE.length]
+        };
+      });
+      renderDealsTable(stageMap);
+    }
+
+    // ============================================================
+    // UTILS
+    // ============================================================
+    function formatCurrency(val) {
+      return val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    }
+
+    // ============================================================
+    // AUTO REFRESH (every 5 minutes)
+    // ============================================================
+    setInterval(() => loadDashboard(), 5 * 60 * 1000);
+
+    // ============================================================
+    // START
+    // ============================================================
+    init();
+  </script>
+</body>
+</html>
